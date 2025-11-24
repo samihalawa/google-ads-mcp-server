@@ -4,6 +4,10 @@
  * Google Ads MCP Server (Node.js)
  * Model Context Protocol server for managing Google Ads campaigns
  * 
+ * Configuration via environment variables (no YAML file needed):
+ * - GOOGLE_ADS_CONFIG: JSON string with all credentials
+ * - GOOGLE_ADS_CUSTOMER_ID: Customer ID to query
+ * 
  * Features:
  * - Campaign management (pause, enable, budget updates)
  * - Performance analytics and reporting
@@ -18,17 +22,11 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { GoogleAdsApi } from 'google-ads-api';
-import fs from 'fs';
-import yaml from 'js-yaml';
-
-// Load configuration
-const CONFIG_FILE = process.env.GOOGLE_ADS_CONFIG || './google-ads.yaml';
-const CUSTOMER_ID = process.env.GOOGLE_ADS_CUSTOMER_ID || '1248495560';
 
 let googleAdsClient = null;
 
 /**
- * Initialize Google Ads client
+ * Initialize Google Ads client from environment variables
  */
 function initializeGoogleAdsClient() {
   if (googleAdsClient) {
@@ -36,8 +34,29 @@ function initializeGoogleAdsClient() {
   }
 
   try {
-    const config = yaml.load(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    // Parse configuration from environment variable
+    const configJson = process.env.GOOGLE_ADS_CONFIG;
+    if (!configJson) {
+      throw new Error('GOOGLE_ADS_CONFIG environment variable is required');
+    }
+
+    const config = JSON.parse(configJson);
     
+    // Validate required fields
+    const requiredFields = ['client_id', 'client_secret', 'developer_token', 'refresh_token', 'login_customer_id'];
+    for (const field of requiredFields) {
+      if (!config[field]) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+
+    // Get customer ID from environment
+    const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID || config.customer_id;
+    if (!customerId) {
+      throw new Error('GOOGLE_ADS_CUSTOMER_ID environment variable is required');
+    }
+
+    // Initialize Google Ads API client
     googleAdsClient = new GoogleAdsApi({
       client_id: config.client_id,
       client_secret: config.client_secret,
@@ -45,7 +64,7 @@ function initializeGoogleAdsClient() {
     });
 
     const customer = googleAdsClient.Customer({
-      customer_id: CUSTOMER_ID,
+      customer_id: customerId,
       refresh_token: config.refresh_token,
       login_customer_id: config.login_customer_id,
     });
@@ -76,7 +95,7 @@ function formatCampaignData(campaign) {
 const server = new Server(
   {
     name: 'google-ads-mcp',
-    version: '1.0.0',
+    version: '1.1.0',
   },
   {
     capabilities: {
@@ -248,6 +267,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     const customer = initializeGoogleAdsClient();
+    const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID || JSON.parse(process.env.GOOGLE_ADS_CONFIG).customer_id;
 
     switch (name) {
       case 'get_campaigns': {
@@ -546,7 +566,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         await customer.campaigns.update({
           campaign: {
-            resource_name: `customers/${CUSTOMER_ID}/campaigns/${campaignId}`,
+            resource_name: `customers/${customerId}/campaigns/${campaignId}`,
             status: 'PAUSED',
           },
           update_mask: { paths: ['status'] },
@@ -567,7 +587,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         await customer.campaigns.update({
           campaign: {
-            resource_name: `customers/${CUSTOMER_ID}/campaigns/${campaignId}`,
+            resource_name: `customers/${customerId}/campaigns/${campaignId}`,
             status: 'ENABLED',
           },
           update_mask: { paths: ['status'] },
@@ -616,7 +636,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // Update budget
         await customer.campaignBudgets.update({
           campaign_budget: {
-            resource_name: `customers/${CUSTOMER_ID}/campaignBudgets/${budgetId}`,
+            resource_name: `customers/${customerId}/campaignBudgets/${budgetId}`,
             amount_micros: Math.round(budgetEuros * 1_000_000),
           },
           update_mask: { paths: ['amount_micros'] },

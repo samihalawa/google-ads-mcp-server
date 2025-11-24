@@ -24,36 +24,45 @@ A Model Context Protocol (MCP) server for managing Google Ads campaigns programm
 
 ## Installation
 
-### 1. Install Dependencies
+### Global Installation (Recommended for CLI use)
 
 ```bash
-pnpm install
+npm install -g @samihalawa/google-ads-mcp-server
 ```
 
-Or with npm:
+### Local Installation (For project integration)
 
 ```bash
-npm install
+npm install @samihalawa/google-ads-mcp-server
 ```
 
-### 2. Configure Google Ads API
-
-Create a `google-ads.yaml` file in the same directory:
-
-```yaml
-developer_token: YOUR_DEVELOPER_TOKEN
-client_id: YOUR_CLIENT_ID
-client_secret: YOUR_CLIENT_SECRET
-refresh_token: YOUR_REFRESH_TOKEN
-login_customer_id: YOUR_MANAGER_CUSTOMER_ID
-use_proto_plus: True
-```
-
-### 3. Set Environment Variables (Optional)
+Or with pnpm:
 
 ```bash
-export GOOGLE_ADS_CONFIG="/path/to/google-ads.yaml"
-export GOOGLE_ADS_CUSTOMER_ID="1234567890"
+pnpm add @samihalawa/google-ads-mcp-server
+```
+
+## Configuration
+
+### Simple .env Configuration (No YAML file needed!)
+
+Create a `.env` file with your Google Ads API credentials as inline JSON:
+
+```bash
+# Google Ads API Configuration (JSON format - all in one line)
+GOOGLE_ADS_CONFIG='{"client_id":"YOUR_CLIENT_ID.apps.googleusercontent.com","client_secret":"YOUR_CLIENT_SECRET","developer_token":"YOUR_DEVELOPER_TOKEN","refresh_token":"YOUR_REFRESH_TOKEN","login_customer_id":"YOUR_MANAGER_CUSTOMER_ID"}'
+
+# Customer ID to query (without dashes)
+GOOGLE_ADS_CUSTOMER_ID=1234567890
+```
+
+**That's it!** No separate YAML files needed. Everything is in your `.env` file.
+
+### Example Configuration
+
+```bash
+GOOGLE_ADS_CONFIG='{"client_id":"963208150325-mmhibhl91g39ma9jsvrgacpleraq4nfu.apps.googleusercontent.com","client_secret":"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","developer_token":"i525AeFTAacFOtQtWBjY6g","refresh_token":"1//04OmKZJ58yhQaCgYIARAAGAQSNwF-L9IrfyrhE7W2zk00iStBE8dCRazdeUgXiMVxH-WIr9PEh6W3_RvjRKSZx-FH3l3Dun5vWOc","login_customer_id":"4850172260"}'
+GOOGLE_ADS_CUSTOMER_ID=1248495560
 ```
 
 ## Usage
@@ -61,13 +70,14 @@ export GOOGLE_ADS_CUSTOMER_ID="1234567890"
 ### Running the Server
 
 ```bash
+# Load .env and run
 node server.js
 ```
 
-Or with pnpm:
+Or with npx (no installation):
 
 ```bash
-pnpm start
+npx @samihalawa/google-ads-mcp-server
 ```
 
 ### Using with MCP Clients
@@ -78,10 +88,10 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 {
   "mcpServers": {
     "google-ads": {
-      "command": "node",
-      "args": ["/path/to/google-ads-mcp-node/server.js"],
+      "command": "npx",
+      "args": ["@samihalawa/google-ads-mcp-server"],
       "env": {
-        "GOOGLE_ADS_CONFIG": "/path/to/google-ads.yaml",
+        "GOOGLE_ADS_CONFIG": "{\"client_id\":\"YOUR_CLIENT_ID\",\"client_secret\":\"YOUR_SECRET\",\"developer_token\":\"YOUR_TOKEN\",\"refresh_token\":\"YOUR_REFRESH\",\"login_customer_id\":\"YOUR_MANAGER_ID\"}",
         "GOOGLE_ADS_CUSTOMER_ID": "1234567890"
       }
     }
@@ -92,6 +102,10 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 ### Using with manus-mcp-cli
 
 ```bash
+# Set environment variables
+export GOOGLE_ADS_CONFIG='{"client_id":"...","client_secret":"...","developer_token":"...","refresh_token":"...","login_customer_id":"..."}'
+export GOOGLE_ADS_CUSTOMER_ID="1234567890"
+
 # List available tools
 manus-mcp-cli tool list --server google-ads
 
@@ -258,31 +272,17 @@ manus-mcp-cli tool call export_report --server google-ads --input '{"format": "c
 manus-mcp-cli tool call export_report --server google-ads --input '{"format": "json", "days": 7}'
 ```
 
-## Configuration for Your Account
-
-Based on your current setup:
-
-```yaml
-# google-ads.yaml
-developer_token: i525AeFTAacFOtQtWBjY6g
-client_id: 963208150325-mmhibhl91g39ma9jsvrgacpleraq4nfu.apps.googleusercontent.com
-client_secret: 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
-refresh_token: 1//04OmKZJ58yhQaCgYIARAAGAQSNwF-L9IrfyrhE7W2zk00iStBE8dCRazdeUgXiMVxH-WIr9PEh6W3_RvjRKSZx-FH3l3Dun5vWOc
-login_customer_id: 4850172260
-use_proto_plus: True
-```
-
-```bash
-# Environment variables
-export GOOGLE_ADS_CUSTOMER_ID="1248495560"
-```
-
 ## Troubleshooting
 
+### "GOOGLE_ADS_CONFIG environment variable is required"
+- Make sure you've set the `GOOGLE_ADS_CONFIG` environment variable
+- Check that the JSON is valid and properly escaped
+- Ensure all required fields are present
+
 ### "Failed to initialize Google Ads client"
-- Check that `google-ads.yaml` exists and is properly formatted
 - Verify all credentials are correct
 - Ensure refresh token is still valid
+- Check that the JSON format is correct
 
 ### "Campaign not found"
 - Verify the campaign ID is correct
@@ -304,10 +304,11 @@ The MCP server automatically handles rate limiting and retries.
 
 ## Security
 
-- Never commit `google-ads.yaml` to version control
+- Never commit `.env` to version control
 - Store credentials securely
 - Use environment variables for sensitive data
 - Rotate refresh tokens regularly
+- The `.gitignore` file already excludes `.env` files
 
 ## Support
 
@@ -315,12 +316,19 @@ For issues or questions:
 1. Check the [Google Ads API documentation](https://developers.google.com/google-ads/api/docs/start)
 2. Review the [MCP specification](https://modelcontextprotocol.io/)
 3. Check server logs for error messages
+4. Open an issue on [GitHub](https://github.com/samihalawa/google-ads-mcp-server/issues)
 
 ## License
 
 MIT License - See LICENSE file for details
 
 ## Version History
+
+### 1.1.0 (2025-11-24)
+- **Breaking Change:** Switched from YAML to inline JSON configuration in .env
+- Removed js-yaml dependency
+- Simplified configuration - no separate files needed
+- Updated documentation
 
 ### 1.0.0 (2025-11-24)
 - Initial Node.js release

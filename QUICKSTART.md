@@ -1,169 +1,201 @@
-# Google Ads MCP Server (Node.js) - Quick Start
+# Google Ads MCP Server - Quick Start Guide
 
-Get up and running in 5 minutes!
+Get started with the Google Ads MCP server in under 5 minutes!
 
 ## Prerequisites
 
-✅ Node.js 18+ (you have v22.13.0)  
-✅ pnpm (installed)  
-✅ Google Ads API credentials (configured)
+- Node.js 18+ installed
+- Google Ads API credentials (developer token, OAuth credentials)
+- A Google Ads account with campaigns
 
-## Step 1: Install Dependencies (30 seconds)
+## Step 1: Install
 
-```bash
-cd /home/ubuntu/google-ads-mcp-node
-pnpm install
-```
-
-## Step 2: Verify Configuration (Already Done!)
-
-The `google-ads.yaml` file is already configured:
-
-```yaml
-developer_token: i525AeFTAacFOtQtWBjY6g
-client_id: 963208150325-mmhibhl91g39ma9jsvrgacpleraq4nfu.apps.googleusercontent.com
-client_secret: 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
-refresh_token: 1//04OmKZJ58yhQaCgYIARAAGAQSNwF-L9IrfyrhE7W2zk00iStBE8dCRazdeUgXiMVxH-WIr9PEh6W3_RvjRKSZx-FH3l3Dun5vWOc
-login_customer_id: 4850172260
-```
-
-✅ **Ready to use!**
-
-## Step 3: Start the Server (10 seconds)
+### Global Installation (Recommended)
 
 ```bash
+npm install -g @samihalawa/google-ads-mcp-server
+```
+
+### Or use npx (no installation)
+
+```bash
+npx @samihalawa/google-ads-mcp-server
+```
+
+## Step 2: Configure
+
+Create a `.env` file with your credentials as inline JSON:
+
+```bash
+# Copy the example
+cp .env.example .env
+
+# Edit with your credentials
+nano .env
+```
+
+Your `.env` file should look like this:
+
+```bash
+GOOGLE_ADS_CONFIG='{"client_id":"YOUR_CLIENT_ID.apps.googleusercontent.com","client_secret":"YOUR_CLIENT_SECRET","developer_token":"YOUR_DEVELOPER_TOKEN","refresh_token":"YOUR_REFRESH_TOKEN","login_customer_id":"YOUR_MANAGER_CUSTOMER_ID"}'
+GOOGLE_ADS_CUSTOMER_ID=1234567890
+```
+
+**That's it!** No separate YAML files needed.
+
+### Real Example
+
+```bash
+GOOGLE_ADS_CONFIG='{"client_id":"963208150325-mmhibhl91g39ma9jsvrgacpleraq4nfu.apps.googleusercontent.com","client_secret":"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","developer_token":"i525AeFTAacFOtQtWBjY6g","refresh_token":"1//04OmKZJ58yhQaCgYIARAAGAQSNwF-L9IrfyrhE7W2zk00iStBE8dCRazdeUgXiMVxH-WIr9PEh6W3_RvjRKSZx-FH3l3Dun5vWOc","login_customer_id":"4850172260"}'
+GOOGLE_ADS_CUSTOMER_ID=1248495560
+```
+
+## Step 3: Run
+
+```bash
+# Load .env and start server
 node server.js
 ```
 
-Expected output: `Google Ads MCP Server (Node.js) running on stdio`
-
-## Step 4: Use with manus-mcp-cli (2 minutes)
-
-### List available tools:
+Or with npx:
 
 ```bash
-manus-mcp-cli tool list --server google-ads
+npx @samihalawa/google-ads-mcp-server
 ```
 
-### Get your campaigns:
+You should see:
+```
+Google Ads MCP Server (Node.js) running on stdio
+```
+
+## Step 4: Test
+
+Open a new terminal and test with manus-mcp-cli:
 
 ```bash
+# Set environment variables
+export GOOGLE_ADS_CONFIG='{"client_id":"...","client_secret":"...","developer_token":"...","refresh_token":"...","login_customer_id":"..."}'
+export GOOGLE_ADS_CUSTOMER_ID="1234567890"
+
+# List tools
+manus-mcp-cli tool list --server google-ads
+
+# Get campaigns
 manus-mcp-cli tool call get_campaigns --server google-ads --input '{"days": 30}'
 ```
 
-### Get performance summary:
+## Common Use Cases
+
+### Get Your Campaigns
+
+```bash
+manus-mcp-cli tool call get_campaigns --server google-ads --input '{"days": 30, "status": "ENABLED"}'
+```
+
+### Check Performance
 
 ```bash
 manus-mcp-cli tool call get_performance_summary --server google-ads --input '{"days": 7}'
 ```
 
-### Get top performers:
+### Find Top Performers
 
 ```bash
-manus-mcp-cli tool call get_top_performers --server google-ads --input '{"metric": "ctr", "limit": 3}'
+manus-mcp-cli tool call get_top_performers --server google-ads --input '{"metric": "ctr", "limit": 5}'
 ```
 
-## Your Current Campaigns
+### Pause a Campaign
 
-### Campaign #1 (ID: 23207843655)
-- Status: ENABLED
-- Budget: €4.00/day
-- Performance: ⚠️ Underperforming (High CPC: €0.589)
-
-**Recommended action:**
 ```bash
 manus-mcp-cli tool call pause_campaign --server google-ads --input '{"campaign_id": "23207843655"}'
 ```
 
-### Black Friday 2025 (ID: 23270379040)
-- Status: ENABLED
-- Budget: €15.00/day
-- Performance: ✅ Excellent (Low CPC: €0.029)
+### Scale a Winner
 
-**Recommended action:**
 ```bash
-manus-mcp-cli tool call update_campaign_budget --server google-ads --input '{"campaign_id": "23270379040", "budget_euros": 25.0}'
+manus-mcp-cli tool call update_campaign_budget --server google-ads --input '{"campaign_id": "23270379040", "budget_euros": 25.00}'
 ```
 
-## Common Operations
-
-### Check Campaign Performance
+### Export Report
 
 ```bash
-# Get all campaigns
-manus-mcp-cli tool call get_campaigns --server google-ads --input '{}'
-
-# Get specific campaign details
-manus-mcp-cli tool call get_campaign_details --server google-ads --input '{"campaign_id": "23207843655"}'
-```
-
-### Manage Campaigns
-
-```bash
-# Pause underperforming campaign
-manus-mcp-cli tool call pause_campaign --server google-ads --input '{"campaign_id": "23207843655"}'
-
-# Enable campaign
-manus-mcp-cli tool call enable_campaign --server google-ads --input '{"campaign_id": "23270379040"}'
-
-# Update budget
-manus-mcp-cli tool call update_campaign_budget --server google-ads --input '{"campaign_id": "23270379040", "budget_euros": 20.0}'
-```
-
-### Generate Reports
-
-```bash
-# Export to CSV
 manus-mcp-cli tool call export_report --server google-ads --input '{"format": "csv", "days": 30}'
-
-# Export to JSON
-manus-mcp-cli tool call export_report --server google-ads --input '{"format": "json", "days": 7}'
 ```
+
+## Using with Claude Desktop
+
+Add to your Claude Desktop configuration file:
+
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "google-ads": {
+      "command": "npx",
+      "args": ["@samihalawa/google-ads-mcp-server"],
+      "env": {
+        "GOOGLE_ADS_CONFIG": "{\"client_id\":\"YOUR_CLIENT_ID\",\"client_secret\":\"YOUR_SECRET\",\"developer_token\":\"YOUR_TOKEN\",\"refresh_token\":\"YOUR_REFRESH\",\"login_customer_id\":\"YOUR_MANAGER_ID\"}",
+        "GOOGLE_ADS_CUSTOMER_ID": "1234567890"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop and you'll have Google Ads tools available!
 
 ## Troubleshooting
 
+### "GOOGLE_ADS_CONFIG environment variable is required"
+
+Make sure you've set the environment variable:
+
+```bash
+export GOOGLE_ADS_CONFIG='{"client_id":"...","client_secret":"...","developer_token":"...","refresh_token":"...","login_customer_id":"..."}'
+```
+
 ### "Failed to initialize Google Ads client"
 
-**Solution:** Check that `google-ads.yaml` exists:
+Check your JSON format - it must be valid JSON:
+
 ```bash
-ls -la google-ads.yaml
-chmod 600 google-ads.yaml
+# Test if your JSON is valid
+echo $GOOGLE_ADS_CONFIG | node -e "console.log(JSON.parse(require('fs').readFileSync(0, 'utf-8')))"
 ```
 
 ### "Campaign not found"
 
-**Solution:** Verify the campaign ID:
+Verify the campaign ID is correct:
+
 ```bash
-manus-mcp-cli tool call get_campaigns --server google-ads --input '{}'
+# List all campaigns first
+manus-mcp-cli tool call get_campaigns --server google-ads --input '{"days": 30}'
 ```
-
-### "Unauthorized" error
-
-**Solution:** Refresh token may have expired. Generate a new one using OAuth Playground.
 
 ## Next Steps
 
-1. ✅ **Set up conversion tracking** on AutoTinder.ai
-2. ✅ **Pause Campaign #1** (wasting budget)
-3. ✅ **Scale Black Friday campaign** (performing well)
-4. ✅ **Schedule daily reports** using the MCP server
-5. ✅ **Integrate with automation tools**
+1. ✅ **Automate daily monitoring** - Create a cron job
+2. ✅ **Set up alerts** - Monitor performance thresholds
+3. ✅ **Build dashboards** - Export data to visualization tools
+4. ✅ **Integrate with CI/CD** - Automate campaign updates
 
-## Quick Reference
+## Getting Help
 
-| Tool | Purpose | Example |
-|------|---------|---------|
-| `get_campaigns` | List all campaigns | `{"days": 30}` |
-| `get_campaign_details` | Campaign details | `{"campaign_id": "123"}` |
-| `get_performance_summary` | Account summary | `{"days": 7}` |
-| `get_top_performers` | Top campaigns | `{"metric": "ctr", "limit": 5}` |
-| `pause_campaign` | Pause campaign | `{"campaign_id": "123"}` |
-| `enable_campaign` | Enable campaign | `{"campaign_id": "123"}` |
-| `update_campaign_budget` | Update budget | `{"campaign_id": "123", "budget_euros": 20}` |
-| `export_report` | Export data | `{"format": "csv"}` |
+- **Documentation:** See README.md for complete reference
+- **API Docs:** https://developers.google.com/google-ads/api/docs/start
+- **MCP Spec:** https://modelcontextprotocol.io/
+- **Issues:** https://github.com/samihalawa/google-ads-mcp-server/issues
+
+## Tips
+
+1. **Use environment variables** - Never hardcode credentials
+2. **Start with read-only tools** - Get familiar before making changes
+3. **Test on small campaigns first** - Verify everything works
+4. **Monitor rate limits** - Google Ads API has daily quotas
+5. **Keep refresh tokens secure** - They provide long-term access
 
 ---
 
-**You're all set!** 🎉
-
-Your Node.js Google Ads MCP server is ready to use!
+**You're all set!** Start managing your Google Ads campaigns programmatically! 🚀
