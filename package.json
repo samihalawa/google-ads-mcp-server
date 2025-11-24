@@ -4,6 +4,7 @@
   "description": "Model Context Protocol server for Google Ads management (Node.js)",
   "type": "module",
   "main": "server.js",
+  "module": "server.js",
   "bin": {
     "google-ads-mcp": "./server.js"
   },
