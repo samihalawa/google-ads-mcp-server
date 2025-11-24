@@ -6,6 +6,7 @@ node_modules/
 google-ads.yaml
 *.yaml
 *.yml
+!smithery.yaml
 .env
 .env.local
 

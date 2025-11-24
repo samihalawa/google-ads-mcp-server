@@ -1,0 +1,34 @@
+version: 1
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - GOOGLE_ADS_CONFIG
+      - GOOGLE_ADS_CUSTOMER_ID
+    properties:
+      GOOGLE_ADS_CONFIG:
+        type: string
+        description: "Google Ads API configuration JSON string containing client_id, client_secret, developer_token, refresh_token, and login_customer_id"
+      GOOGLE_ADS_CUSTOMER_ID:
+        type: string
+        description: "Google Ads customer ID (without dashes)"
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', '@samihalawa/google-ads-mcp-server@latest'],
+      env: {
+        GOOGLE_ADS_CONFIG: config.GOOGLE_ADS_CONFIG,
+        GOOGLE_ADS_CUSTOMER_ID: config.GOOGLE_ADS_CUSTOMER_ID
+      }
+    })
+exampleConfig:
+  GOOGLE_ADS_CONFIG: '{"client_id":"YOUR_CLIENT_ID","client_secret":"YOUR_CLIENT_SECRET","developer_token":"YOUR_DEVELOPER_TOKEN","refresh_token":"YOUR_REFRESH_TOKEN","login_customer_id":"YOUR_LOGIN_CUSTOMER_ID"}'
+  GOOGLE_ADS_CUSTOMER_ID: "1234567890"
+description: "📊 Google Ads MCP Server - Manage and analyze Google Ads campaigns through MCP protocol"
+tags:
+  - "google-ads"
+  - "advertising"
+  - "campaigns"
+  - "analytics"
+  - "marketing"
