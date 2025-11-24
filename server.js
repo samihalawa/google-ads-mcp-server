@@ -305,14 +305,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           name: row.campaign.name,
           status: row.campaign.status,
           type: row.campaign.advertising_channel_type,
-          budget_euros: row.campaign_budget.amount_micros / 1_000_000,
-          clicks: row.metrics.clicks,
-          impressions: row.metrics.impressions,
-          ctr: (row.metrics.ctr * 100).toFixed(2),
-          cost_euros: (row.metrics.cost_micros / 1_000_000).toFixed(2),
-          cpc_euros: (row.metrics.average_cpc / 1_000_000).toFixed(3),
-          conversions: row.metrics.conversions,
-          conversion_value: row.metrics.conversions_value,
+          budget_euros: Number(row.campaign_budget.amount_micros) / 1_000_000,
+          clicks: Number(row.metrics.clicks),
+          impressions: Number(row.metrics.impressions),
+          ctr: (Number(row.metrics.ctr) * 100).toFixed(2),
+          cost_euros: (Number(row.metrics.cost_micros) / 1_000_000).toFixed(2),
+          cpc_euros: (Number(row.metrics.average_cpc) / 1_000_000).toFixed(3),
+          conversions: Number(row.metrics.conversions),
+          conversion_value: Number(row.metrics.conversions_value),
         }));
 
         if (formattedCampaigns.length === 0) {
