@@ -1,0 +1,39 @@
+{
+  "name": "@samihalawa/google-ads-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Google Ads management (Node.js)",
+  "type": "module",
+  "main": "server.js",
+  "bin": {
+    "google-ads-mcp": "./server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-server.js"
+  },
+  "keywords": [
+    "mcp",
+    "google-ads",
+    "advertising",
+    "campaigns",
+    "model-context-protocol"
+  ],
+  "author": "Sami Halawa <sami@autoclient.art>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/samihalawa/google-ads-mcp-server"
+  },
+  "homepage": "https://github.com/samihalawa/google-ads-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/samihalawa/google-ads-mcp-server/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "google-ads-api": "^17.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

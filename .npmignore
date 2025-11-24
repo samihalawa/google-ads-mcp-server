@@ -1,0 +1,33 @@
+# Credentials (NEVER publish these!)
+google-ads.yaml
+*.yaml
+*.yml
+.env
+.env.local
+
+# Development files
+node_modules/
+.pnpm-store/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
