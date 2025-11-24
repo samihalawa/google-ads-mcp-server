@@ -909,9 +909,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         },
       ],
       isError: true,
-    };
-
-});
+	    };
+	
+	  }
+	);
 
 /**
  * Start the server
