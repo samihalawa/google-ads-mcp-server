@@ -234,8 +234,74 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['campaign_id', 'budget_euros'],
         },
       },
-      {
-        name: 'export_report',
+	      {
+	        name: 'create_responsive_display_ad',
+	        description: 'Create a Responsive Display Ad with Ad Controls (e.g., enable video creation)',
+	        inputSchema: {
+	          type: 'object',
+	          properties: {
+	            ad_group_id: {
+	              type: 'string',
+	              description: 'The Ad Group ID where the ad will be created',
+	            },
+	            headlines: {
+	              type: 'array',
+	              description: 'Array of headlines (max 5)',
+	              items: { type: 'string' },
+	            },
+	            descriptions: {
+	              type: 'array',
+	              description: 'Array of descriptions (max 5)',
+	              items: { type: 'string' },
+	            },
+	            enable_video_creation: {
+	              type: 'boolean',
+	              description: 'Set to true to enable video creation for the ad (default: false)',
+	              default: false,
+	            },
+	          },
+	          required: ['ad_group_id', 'headlines', 'descriptions'],
+	        },
+	      },
+	      {
+	        name: 'create_conversion_action',
+	        description: 'Create a new Conversion Action (e.g., for website, phone calls)',
+	        inputSchema: {
+	          type: 'object',
+	          properties: {
+	            name: {
+	              type: 'string',
+	              description: 'The name of the new conversion action',
+	            },
+	            type: {
+	              type: 'string',
+	              description: 'The type of conversion action (e.g., UPLOAD_CLICKS, WEBSITE, CLICK_TO_CALL)',
+	              enum: ['UPLOAD_CLICKS', 'WEBSITE', 'CLICK_TO_CALL', 'WEBSITE_CALL'],
+	            },
+	            category: {
+	              type: 'string',
+	              description: 'The category of the conversion (e.g., PURCHASE, LEAD, PAGE_VIEW)',
+	              enum: ['PURCHASE', 'LEAD', 'PAGE_VIEW', 'SIGNUP', 'OTHER'],
+	            },
+	            value: {
+	              type: 'number',
+	              description: 'Default value in Euros for the conversion (default: 0)',
+	              default: 0,
+	            },
+	          },
+	          required: ['name', 'type', 'category'],
+	        },
+	      },
+	      {
+	        name: 'get_conversion_actions',
+	        description: 'List all Conversion Actions for the account',
+	        inputSchema: {
+	          type: 'object',
+	          properties: {},
+	        },
+	      },
+	      {
+	        name: 'export_report',
         description: 'Export campaign data to CSV or JSON format',
         inputSchema: {
           type: 'object',
@@ -346,7 +412,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'get_campaign_details': {
+	      case 'create_responsive_display_ad': {
+	        const { ad_group_id, headlines, descriptions, enable_video_creation } = args;
+	
+	        const ad = {
+	          adGroupId: ad_group_id,
+	          type: 'RESPONSIVE_DISPLAY_AD',
+	          responsiveDisplayAd: {
+	            headlines: headlines.map(text => ({ text })),
+	            descriptions: descriptions.map(text => ({ text })),
+	            // Placeholder for required assets - simplified for MCP
+	            marketingImages: [{ asset: 'customers/CUSTOMER_ID/assets/ASSET_ID_1' }],
+	            squareMarketingImages: [{ asset: 'customers/CUSTOMER_ID/assets/ASSET_ID_2' }],
+	            longHeadline: { text: 'A very long headline for the ad' },
+	            businessName: 'AutoTinder AI',
+	            controlSpec: {
+	              enable_video_creation: enable_video_creation || false,
+	            },
+	          },
+	          status: 'ENABLED',
+	        };
+	
+	        const response = await customer.adGroupAds.create({
+	          ad_group_ad: ad,
+	        });
+	
+	        return {
+	          content: [
+	            {
+	              type: 'text',
+	              text: `✅ Responsive Display Ad created successfully in Ad Group ${ad_group_id}. Resource Name: ${response.results[0].adGroupAd.resourceName}`,
+	            },
+	          ],
+	        };
+	      }
+	
+	      case 'get_campaign_details': {
         const campaignId = args.campaign_id;
         const days = args.days || 30;
 
@@ -652,7 +753,70 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'export_report': {
+	      case 'create_conversion_action': {
+	        const { name, type, category, value } = args;
+	
+	        const conversionAction = {
+	          name: name,
+	          type: type,
+	          category: category,
+	          status: 'ENABLED',
+	          valueSettings: {
+	            default_value: value || 0,
+	            default_currency_code: 'EUR',
+	          },
+	        };
+	
+	        const response = await customer.conversionActions.create({
+	          conversion_action: conversionAction,
+	        });
+	
+	        return {
+	          content: [
+	            {
+	              type: 'text',
+	              text: `✅ Conversion Action '${name}' created successfully. Resource Name: ${response.results[0].conversionAction.resourceName}`,
+	            },
+	          ],
+	        };
+	      }
+	
+	      case 'get_conversion_actions': {
+	        const query = `
+	          SELECT
+	            conversion_action.id,
+	            conversion_action.name,
+	            conversion_action.status,
+	            conversion_action.type,
+	            conversion_action.category
+	          FROM conversion_action
+	          WHERE conversion_action.status != 'REMOVED'
+	        `;
+	
+	        const results = await customer.query(query);
+	
+	        const output = ['# Google Ads Conversion Actions\n'];
+	
+	        results.forEach((row) => {
+	          output.push(`---`);
+	          output.push(`**Name:** ${row.conversion_action.name}`);
+	          output.push(`**ID:** ${row.conversion_action.id}`);
+	          output.push(`**Status:** ${row.conversion_action.status}`);
+	          output.push(`**Type:** ${row.conversion_action.type}`);
+	          output.push(`**Category:** ${row.conversion_action.category}`);
+	        });
+	
+	        return {
+	          content: [
+	            {
+	              type: 'text',
+	              text: output.join('\n'),
+	            },
+	          ],
+	        };
+	      }
+	
+	      case 'export_report': {
         const format = args.format;
         const days = args.days || 30;
 
@@ -746,7 +910,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       ],
       isError: true,
     };
-  }
+
 });
 
 /**
@@ -756,6 +920,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('Google Ads MCP Server (Node.js) running on stdio');
+
 }
 
 main().catch((error) => {
